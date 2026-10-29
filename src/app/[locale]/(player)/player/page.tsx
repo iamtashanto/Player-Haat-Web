@@ -64,7 +64,7 @@ export default function PlayerHomePage() {
         {/* Complete Profile Setup Banner (1:1 with _SetupBanner in Flutter) */}
         <PhCard
           color="var(--ph-accent-soft)"
-          onTap={() => router.push('/gallery')}
+          onTap={() => router.push('/player/onboarding')}
         >
           <div className="flex items-center gap-3">
             <div className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full bg-[var(--ph-accent)] text-[var(--ph-accent-on)]">
@@ -174,7 +174,12 @@ export default function PlayerHomePage() {
 
         {/* Open Recruitment Requests Near Me */}
         <div>
-          <PhSectionHeader title={t('homeNearby')} className="pt-2" />
+          <PhSectionHeader
+            title={t('homeNearby')}
+            actionLabel={t('seeAll')}
+            onAction={() => router.push('/player/opportunities')}
+            className="pt-2"
+          />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <RequestCardView
               request={{
@@ -193,7 +198,7 @@ export default function PlayerHomePage() {
                 captainRatingAvg: 4.9,
                 captainRatingCount: 18,
               }}
-              onTap={() => showPhToast(t('applySheetTitle'))}
+              onTap={() => router.push('/player/opportunities')}
             />
             <RequestCardView
               request={{
@@ -209,7 +214,7 @@ export default function PlayerHomePage() {
                 captainRatingAvg: 4.6,
                 captainRatingCount: 11,
               }}
-              onTap={() => showPhToast(t('applySheetTitle'))}
+              onTap={() => router.push('/player/opportunities')}
             />
           </div>
         </div>

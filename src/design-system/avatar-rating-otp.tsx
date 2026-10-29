@@ -124,6 +124,20 @@ export function RatingStars({ value, size = 16, className }: RatingStarsProps) {
   );
 }
 
+export function PhStarRating({
+  rating,
+  value,
+  size = 16,
+  className,
+}: {
+  rating?: number;
+  value?: number;
+  size?: number;
+  className?: string;
+}) {
+  return <RatingStars value={rating ?? value ?? 0} size={size} className={className} />;
+}
+
 export interface RatingPillProps {
   average: number;
   count: number;

@@ -6,7 +6,7 @@ import { kMinTap, PhRadius } from './tokens';
 import { Pressable } from './glass';
 import { cn } from '@/lib/utils';
 
-export type PhButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive';
+export type PhButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive' | 'danger';
 export type PhButtonSize = 'large' | 'medium' | 'small';
 
 export interface PhButtonProps {
@@ -15,8 +15,10 @@ export interface PhButtonProps {
   variant?: PhButtonVariant;
   size?: PhButtonSize;
   icon?: React.ReactNode;
+  trailing?: React.ReactNode;
   loading?: boolean;
   expand?: boolean;
+  expanded?: boolean;
   disabled?: boolean;
   type?: 'button' | 'submit' | 'reset';
   className?: string;
@@ -33,23 +35,28 @@ export function PhButton({
   variant = 'primary',
   size = 'large',
   icon,
+  trailing,
   loading = false,
-  expand = true,
+  expand,
+  expanded,
   disabled: explicitDisabled,
   type = 'button',
   className,
 }: PhButtonProps) {
+  const isExpanded = expanded ?? expand ?? true;
+  const effectiveVariant: PhButtonVariant = variant === 'danger' ? 'destructive' : variant;
   const isDisabled = explicitDisabled ?? (onPressed == null && !loading);
 
   const height = size === 'large' ? 54 : size === 'medium' ? 46 : 36;
   const radius = size === 'large' ? PhRadius.md : PhRadius.sm;
 
-  const variantClasses: Record<PhButtonVariant, string> = {
+  const variantClasses: Record<string, string> = {
     primary: 'bg-[var(--ph-accent)] text-[var(--ph-accent-on)] border-transparent hover:brightness-105',
     secondary: 'bg-[var(--ph-surface-alt)] text-[var(--ph-text)] border-transparent hover:brightness-95 dark:hover:brightness-110',
     outline: 'bg-transparent text-[var(--ph-text)] border border-[var(--ph-border)] hover:bg-[var(--ph-surface-alt)]/50',
-    ghost: 'bg-transparent text-[var(--ph-accent)] border-transparent hover:bg-[var(--ph-accent-soft)]/50',
-    destructive: 'bg-[var(--ph-danger-soft)] text-[var(--ph-danger)] border-transparent hover:brightness-95',
+    ghost: 'bg-transparent text-[var(--ph-text)] border-transparent hover:bg-[var(--ph-surface-alt)]/40',
+    destructive: 'bg-[var(--ph-danger)] text-white border-transparent hover:brightness-105',
+    danger: 'bg-[var(--ph-danger)] text-white border-transparent hover:brightness-105',
   };
 
   return (
@@ -59,15 +66,15 @@ export function PhButton({
       disabled={isDisabled || loading}
       onClick={onPressed}
       minSize={kMinTap}
-      className={cn(expand ? 'w-full' : 'w-auto', className)}
+      className={cn(isExpanded ? 'w-full' : 'w-auto', className)}
     >
       <div
         style={{ height: `${height}px`, borderRadius: `${radius}px` }}
         className={cn(
           'flex items-center justify-center gap-2 transition-all duration-150',
-          expand ? 'w-full' : 'w-auto',
+          isExpanded ? 'w-full' : 'w-auto',
           size === 'small' ? 'px-4 tx-subhead-strong' : 'px-6 tx-button',
-          variantClasses[variant],
+          variantClasses[effectiveVariant],
         )}
       >
         {loading ? (
@@ -76,6 +83,7 @@ export function PhButton({
           <>
             {icon && <span className="inline-flex shrink-0 items-center">{icon}</span>}
             <span className="truncate">{label}</span>
+            {trailing && <span className="inline-flex shrink-0 items-center">{trailing}</span>}
           </>
         )}
       </div>

@@ -427,3 +427,48 @@ export function PhStepper({
   );
 }
 
+export interface PhInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
+  label?: string;
+  error?: string;
+  leading?: React.ReactNode;
+  trailing?: React.ReactNode;
+}
+
+export function PhInput({
+  label,
+  error,
+  leading,
+  trailing,
+  className,
+  type = 'text',
+  ...rest
+}: PhInputProps) {
+  return (
+    <div className="w-full">
+      {label && (
+        <label className="mb-1.5 block tx-footnote text-[var(--ph-text-secondary)] font-medium">
+          {label}
+        </label>
+      )}
+      <div
+        style={{ borderRadius: `${PhRadius.sm}px` }}
+        className={cn(
+          'relative flex h-[48px] w-full items-center bg-[var(--ph-surface-alt)] px-3.5 transition-all border border-transparent focus-within:border-[var(--ph-accent)] focus-within:ring-2 focus-within:ring-[var(--ph-accent)]/20',
+          error && 'border-[var(--ph-danger)]',
+          className,
+        )}
+      >
+        {leading && <span className="mr-2 text-[var(--ph-text-tertiary)] inline-flex items-center shrink-0">{leading}</span>}
+        <input
+          type={type}
+          className="h-full w-full bg-transparent tx-callout text-[var(--ph-text)] placeholder:text-[var(--ph-text-tertiary)] focus:outline-none"
+          {...rest}
+        />
+        {trailing && <span className="ml-2 text-[var(--ph-text-tertiary)] inline-flex items-center shrink-0">{trailing}</span>}
+      </div>
+      {error && <p className="mt-1 tx-caption text-[var(--ph-danger)]">{error}</p>}
+    </div>
+  );
+}
+
+

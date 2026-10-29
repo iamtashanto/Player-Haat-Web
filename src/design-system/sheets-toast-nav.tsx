@@ -61,6 +61,9 @@ export interface PhGlassSheetProps {
   dismissible?: boolean;
 }
 
+export type PhBottomSheetProps = PhGlassSheetProps;
+export const PhBottomSheet = PhGlassSheet;
+
 /**
  * Frosted modal sheet (`showGlassSheet` in Flutter):
  * - On mobile (<768px): slides up from bottom with grabber bar (`PhRadius.sheet = 32px` top corners).

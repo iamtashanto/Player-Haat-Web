@@ -120,7 +120,7 @@ export function PlayerTileCard({
           name={player.name}
           url={player.avatarUrl}
           size={56}
-          verified={player.verifiedBadge}
+          verified={player.verifiedBadge ?? player.verified}
         />
         <div className="min-w-0 flex-1">
           <div className="tx-headline truncate text-[var(--ph-text)]">
@@ -139,8 +139,9 @@ export function PlayerTileCard({
             <span className="inline-flex min-w-0 items-center gap-1 tx-footnote">
               <MapPin className="h-[13px] w-[13px] shrink-0 text-[var(--ph-text-tertiary)]" />
               <span className="truncate">
-                {player.upazilaName}
-                {player.districtName ? `, ${player.districtName}` : ''}
+                {player.upazilaName
+                  ? `${player.upazilaName}${player.districtName ? `, ${player.districtName}` : ''}`
+                  : player.area || ''}
               </span>
             </span>
           </div>
@@ -162,21 +163,29 @@ export interface SampleRequestCardData {
   id: string;
   whenText: string;
   sportName: string;
-  positionsText: string;
+  positionsText?: string;
+  positions?: string[];
   venueText: string;
-  locationShort: string;
+  locationShort?: string;
+  areaText?: string;
   isPaid: boolean;
   budgetMin?: number | null;
   budgetMax?: number | null;
   spotsLeft: number;
+  playersNeeded?: number;
   isEvent?: boolean;
   title?: string;
   isBoosted?: boolean;
+  featured?: boolean;
   captainName: string;
   captainAvatarUrl?: string | null;
-  captainRatingAvg: number;
-  captainRatingCount: number;
+  captainRatingAvg?: number;
+  captainRatingCount?: number;
+  captainVerified?: boolean;
+  status?: string;
 }
+
+export type RequestCardItem = SampleRequestCardData;
 
 /**
  * Exact parity with Flutter's `RequestCard` (`app/lib/shared/widgets/cards.dart`).
@@ -219,7 +228,7 @@ export function RequestCardView({
             <div className="mt-0.5 tx-subhead truncate">
               {r.isEvent
                 ? `${r.whenText} · ${r.sportName}`
-                : `${r.sportName} · ${r.positionsText}`}
+                : `${r.sportName} · ${r.positionsText ?? (r.positions ? r.positions.join(', ') : '')}`}
             </div>
           </div>
         </div>
@@ -237,7 +246,7 @@ export function RequestCardView({
             tone={r.isPaid ? 'accent' : 'neutral'}
             icon={r.isPaid ? <DollarSign className="h-3 w-3" /> : undefined}
           />
-          {r.isBoosted && (
+          {(r.isBoosted ?? r.featured) && (
             <PhBadge
               label={t('featuredTitle')}
               tone="warning"
@@ -252,7 +261,8 @@ export function RequestCardView({
         <div className="mt-3 flex w-full items-center gap-1.5 tx-footnote">
           <MapPin className="h-[15px] w-[15px] shrink-0 text-[var(--ph-text-tertiary)]" />
           <span className="truncate">
-            {r.venueText} · {r.locationShort}
+            {r.venueText}
+            {r.locationShort || r.areaText ? ` · ${r.locationShort ?? r.areaText}` : ''}
           </span>
         </div>
 
@@ -271,8 +281,8 @@ export function RequestCardView({
                     {r.captainName}
                   </span>
                   <RatingPill
-                    average={r.captainRatingAvg}
-                    count={r.captainRatingCount}
+                    average={r.captainRatingAvg ?? 0}
+                    count={r.captainRatingCount ?? 0}
                     format={(a, n) => formatRatingText(a, n, locale)}
                     emptyLabel={t('newPlayerLabel')}
                   />
