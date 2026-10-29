@@ -136,3 +136,4 @@ export function formatTime(date: Date | string, locale: AppLocale): string {
 export function formatRatingText(avg: number, count: number, locale: AppLocale): string {
   return `${formatDecimal1(avg, locale)} (${formatNumber(count, locale)})`;
 }
+

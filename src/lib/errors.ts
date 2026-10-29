@@ -173,3 +173,4 @@ export function getErrorText(t: (key: string) => string, error: unknown): string
   }
   return t('errUnknown');
 }
+

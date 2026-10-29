@@ -167,3 +167,4 @@ export const PhTypography = {
   button: { size: 17, lineHeight: 22, weight: 600, tracking: '-0.01em' },
   overline: { size: 12, lineHeight: 16, weight: 600, tracking: '0.05em' },
 } as const;
+
