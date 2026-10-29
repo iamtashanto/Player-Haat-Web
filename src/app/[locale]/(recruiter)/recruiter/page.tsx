@@ -2,9 +2,11 @@
 
 import React, { useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { DollarSign, MapPin, Plus, SlidersHorizontal } from 'lucide-react';
-import type { AppLocale } from '@/i18n/routing';
+import { DollarSign, MapPin, Plus, SlidersHorizontal, UserPlus } from 'lucide-react';
+import { useRouter, type AppLocale } from '@/i18n/routing';
 import {
+  PhBadge,
+  PhCard,
   PhChip,
   PhGlassSheet,
   PhIconButton,
@@ -15,6 +17,7 @@ import {
   showPhToast,
 } from '@/design-system';
 import { PlayerTileCard } from '@/components/shared/domain-cards';
+import { useMyRecruiterProfile } from '@/lib/recruiter-api';
 
 /**
  * Recruiter Shell Discovery Preview — 1:1 with Flutter's `SearchScreen` (`app/lib/features/search/presentation/search_screen.dart`).
@@ -23,6 +26,8 @@ import { PlayerTileCard } from '@/components/shared/domain-cards';
 export default function RecruiterHomePage() {
   const t = useTranslations();
   const locale = useLocale() as AppLocale;
+  const router = useRouter();
+  const { data: recruiterProfile } = useMyRecruiterProfile();
   const [query, setQuery] = useState('');
   const [sportFilter, setSportFilter] = useState<'ALL' | 'FOOTBALL' | 'CRICKET'>('ALL');
   const [khepOnly, setKhepOnly] = useState(false);
@@ -116,13 +121,30 @@ export default function RecruiterHomePage() {
             <PhIconButton
               icon={<Plus className="h-5 w-5" />}
               semanticLabel={t('postRequest')}
-              onPressed={() => showPhToast(t('newRequestTitle'))}
+              onPressed={() => router.push('/recruiter/requests')}
             />
           </div>
         }
       />
 
       <div className="px-5 md:px-8 space-y-4">
+        {/* Recruiter Setup Banner */}
+        <PhCard
+          color="var(--ph-accent-soft)"
+          onTap={() => router.push('/recruiter/onboarding')}
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full bg-[var(--ph-accent)] text-[var(--ph-accent-on)]">
+              <UserPlus className="h-[22px] w-[22px]" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="tx-headline text-[var(--ph-text)]">Complete Team Profile</div>
+              <div className="mt-0.5 tx-footnote">Add club details to recruit verified players.</div>
+            </div>
+            <PhBadge label={t('setupBannerAction')} tone="accent" />
+          </div>
+        </PhCard>
+
         <PhSearchField
           value={query}
           onChange={setQuery}
@@ -170,7 +192,7 @@ export default function RecruiterHomePage() {
             <PlayerTileCard
               key={p.id}
               player={p}
-              onTap={() => showPhToast(p.name)}
+              onTap={() => router.push(`/p/${p.id}`)}
             />
           ))}
         </div>
