@@ -6,6 +6,8 @@ import { useLocale, useTranslations } from 'next-intl';
 import { Moon, Sun, Monitor, Globe, ShieldCheck, UserCheck } from 'lucide-react';
 import { usePathname, useRouter, type AppLocale } from '@/i18n/routing';
 import { usePhPreferences, type ActiveRole } from '@/components/providers';
+import { useAuth } from '@/lib/auth-context';
+import { apiRequest } from '@/lib/api-client';
 import { PhIconButton, PhRadius, PhSegmented } from '@/design-system';
 import { cn } from '@/lib/utils';
 
@@ -42,6 +44,7 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
   const locale = useLocale() as AppLocale;
   const router = useRouter();
   const pathname = usePathname();
+  const { status } = useAuth();
 
   const toggleLocale = (nextLocale: AppLocale) => {
     if (nextLocale === locale) return;
@@ -49,6 +52,13 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
       localStorage.setItem('ph-locale', nextLocale);
     } catch {
       // ignore
+    }
+    if (status === 'authenticated') {
+      void apiRequest('/users/me', {
+        method: 'PATCH',
+        body: { locale: nextLocale },
+        locale: nextLocale,
+      }).catch(() => {});
     }
     router.replace(pathname, { locale: nextLocale });
   };

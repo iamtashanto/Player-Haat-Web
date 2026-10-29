@@ -5,7 +5,7 @@ const BN_DIGITS = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮'
 /**
  * Convert Latin digits in a string to Bangla digits when locale === 'bn'.
  */
-export function toLocaleDigits(input: string | number, locale: AppLocale): string {
+export function toLocaleDigits(input: string | number, locale: string): string {
   const str = String(input);
   if (locale !== 'bn') return str;
   return str.replace(/\d/g, (d) => BN_DIGITS[Number(d)] ?? d);

@@ -57,7 +57,8 @@ export function PhChip({
 export type PhTone = 'neutral' | 'accent' | 'warning' | 'danger';
 
 export interface PhBadgeProps {
-  label: string;
+  label?: string;
+  children?: React.ReactNode;
   tone?: PhTone;
   icon?: React.ReactNode;
   className?: string;
@@ -69,6 +70,7 @@ export interface PhBadgeProps {
  */
 export function PhBadge({
   label,
+  children,
   tone = 'neutral',
   icon,
   className,
@@ -89,7 +91,7 @@ export function PhBadge({
       )}
     >
       {icon && <span className="mr-1 inline-flex shrink-0 items-center">{icon}</span>}
-      <span className="truncate">{label}</span>
+      <span className="truncate">{children ?? label}</span>
     </span>
   );
 }

@@ -11,13 +11,16 @@ export type PhArtKind = 'find' | 'hire' | 'rate';
  */
 export function PhIllustration({
   kind,
-  size = 120,
+  size,
+  height,
   className,
 }: {
   kind: PhArtKind;
   size?: number;
+  height?: number;
   className?: string;
 }) {
+  const resolvedSize = size ?? height ?? 120;
   if (kind === 'find') {
     const spots: Array<{ cx: number; cy: number; color: string }> = [
       { cx: 52, cy: 68, color: '#3A7BD5' },
@@ -29,8 +32,8 @@ export function PhIllustration({
     ];
     return (
       <svg
-        width={size}
-        height={size}
+        width={resolvedSize}
+        height={resolvedSize}
         viewBox="0 0 200 200"
         fill="none"
         aria-hidden="true"
@@ -64,8 +67,8 @@ export function PhIllustration({
   if (kind === 'hire') {
     return (
       <svg
-        width={size}
-        height={size}
+        width={resolvedSize}
+        height={resolvedSize}
         viewBox="0 0 200 200"
         fill="none"
         aria-hidden="true"
@@ -114,8 +117,8 @@ export function PhIllustration({
   // rate
   return (
     <svg
-      width={size}
-      height={size}
+      width={resolvedSize}
+      height={resolvedSize}
       viewBox="0 0 200 200"
       fill="none"
       aria-hidden="true"
@@ -155,12 +158,19 @@ export function PhIllustration({
 /**
  * Faint football-pitch line art backdrop (`PitchBackdrop` in Flutter).
  */
-export function PitchBackdrop({ className }: { className?: string }) {
+export function PitchBackdrop({
+  opacity,
+  className,
+}: {
+  opacity?: number;
+  className?: string;
+}) {
   return (
     <svg
       viewBox="0 0 800 500"
       fill="none"
       aria-hidden="true"
+      style={opacity !== undefined ? { opacity } : undefined}
       className={cn('pointer-events-none select-none opacity-10 text-[var(--ph-accent)]', className)}
     >
       <rect x="40" y="30" width="720" height="440" rx="16" stroke="currentColor" strokeWidth="2.5" />

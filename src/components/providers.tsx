@@ -1,8 +1,10 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { ThemeProvider as NextThemesProvider } from 'next-themes';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AuthProvider } from '@/lib/auth-context';
+import { syncSessionMetaCookie } from '@/lib/api-client';
 
 export type ActiveRole = 'PLAYER' | 'RECRUITER';
 
@@ -68,7 +70,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const setReduceEffects = (val: boolean) => {
+  const setReduceEffects = useCallback((val: boolean) => {
     setReduceEffectsState(val);
     try {
       localStorage.setItem('ph-reduce-effects', String(val));
@@ -80,16 +82,17 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
     } catch {
       // ignore
     }
-  };
+  }, []);
 
-  const setActiveRole = (role: ActiveRole) => {
+  const setActiveRole = useCallback((role: ActiveRole) => {
     setActiveRoleState(role);
     try {
       localStorage.setItem('ph-active-role', role);
     } catch {
       // ignore
     }
-  };
+    void syncSessionMetaCookie({ activeRole: role });
+  }, []);
 
   return (
     <NextThemesProvider
@@ -109,10 +112,14 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
             setDualRolesEnabled,
           }}
         >
-          {children}
+          <AuthProvider
+            onRoleSync={setActiveRole}
+            onDualRoleSync={setDualRolesEnabled}
+          >
+            {children}
+          </AuthProvider>
         </PhPreferencesContext.Provider>
       </QueryClientProvider>
     </NextThemesProvider>
   );
 }
-

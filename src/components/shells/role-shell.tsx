@@ -6,6 +6,7 @@ import {
   Briefcase,
   Heart,
   Home,
+  LogOut,
   MessageCircle,
   Plus,
   Search,
@@ -16,6 +17,7 @@ import {
 import { useTranslations } from 'next-intl';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
 import { usePhPreferences, type ActiveRole } from '@/components/providers';
+import { useAuth } from '@/lib/auth-context';
 import {
   GlassContainer,
   OfflineBanner,
@@ -52,7 +54,12 @@ export function RoleShell({ role, children }: RoleShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { setActiveRole } = usePhPreferences();
+  const { me, switchActiveRole, hasBothRoles, enableOtherRole, logout } = useAuth();
   const [online, setOnline] = useState(true);
+
+  const displayName =
+    me?.name || (role === 'RECRUITER' ? 'Abahani Youth Club' : 'Sohel Rana');
+  const displayAvatar = me?.avatarUrl ?? undefined;
 
   useEffect(() => {
     setActiveRole(role);
@@ -196,7 +203,19 @@ export function RoleShell({ role, children }: RoleShellProps) {
   );
 
   const handleRoleSwitch = (nextRole: ActiveRole) => {
+    void switchActiveRole(nextRole);
     router.push(nextRole === 'RECRUITER' ? '/recruiter' : '/player');
+  };
+
+  const handleEnableOtherRole = async () => {
+    const otherRole: ActiveRole = role === 'RECRUITER' ? 'PLAYER' : 'RECRUITER';
+    await enableOtherRole(otherRole);
+    router.push(otherRole === 'RECRUITER' ? '/recruiter' : '/player');
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/auth');
   };
 
   return (
@@ -222,12 +241,27 @@ export function RoleShell({ role, children }: RoleShellProps) {
                 </Link>
               </div>
 
-              {/* Active Role Switcher */}
+              {/* Active Role Switcher or Enable Other Role CTA */}
               <div className="mt-4">
-                <RoleSwitcherPill
-                  onRoleChange={handleRoleSwitch}
-                  className="w-full justify-between"
-                />
+                {hasBothRoles ? (
+                  <RoleSwitcherPill
+                    onRoleChange={handleRoleSwitch}
+                    className="w-full justify-between"
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleEnableOtherRole}
+                    className="flex w-full items-center justify-between rounded-full border border-[var(--ph-border)] bg-[var(--ph-surface-alt)] px-3.5 py-2 tx-caption font-semibold text-[var(--ph-text-secondary)] transition-colors hover:border-[var(--ph-accent)] hover:text-[var(--ph-accent)] cursor-pointer"
+                  >
+                    <span>
+                      {role === 'RECRUITER'
+                        ? t('enablePlayerRole')
+                        : t('enableRecruiterRole')}
+                    </span>
+                    <Plus className="h-3.5 w-3.5 shrink-0" />
+                  </button>
+                )}
               </div>
 
               {/* Primary 5 tabs */}
@@ -297,13 +331,14 @@ export function RoleShell({ role, children }: RoleShellProps) {
             <GlassContainer radius={PhRadius.lg} className="p-4">
               <div className="flex items-center gap-3">
                 <PhAvatar
-                  name={role === 'RECRUITER' ? 'Abahani Youth Club' : 'Sohel Rana'}
+                  name={displayName}
+                  url={displayAvatar}
                   size={42}
                   verified
                 />
                 <div className="min-w-0 flex-1">
                   <div className="tx-subhead-strong truncate text-[var(--ph-text)]">
-                    {role === 'RECRUITER' ? 'Abahani Youth Club' : 'Sohel Rana'}
+                    {displayName}
                   </div>
                   <div className="tx-caption truncate text-[var(--ph-accent)]">
                     {role === 'RECRUITER'
@@ -311,13 +346,12 @@ export function RoleShell({ role, children }: RoleShellProps) {
                       : t('accountTypePlayer')}
                   </div>
                 </div>
-                <Link href="/gallery">
-                  <PhIconButton
-                    icon={<Settings className="h-4 w-4" />}
-                    semanticLabel={t('navGallery')}
-                    filled={false}
-                  />
-                </Link>
+                <PhIconButton
+                  icon={<LogOut className="h-4 w-4" />}
+                  semanticLabel={t('logOut')}
+                  filled={false}
+                  onPressed={handleLogout}
+                />
               </div>
             </GlassContainer>
           </div>

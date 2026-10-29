@@ -11,6 +11,7 @@ import { usePhPreferences } from '@/components/providers';
 export interface PhTextFieldProps {
   label?: string;
   hint?: string;
+  placeholder?: string;
   helper?: string;
   error?: string;
   value?: string;
@@ -21,6 +22,8 @@ export interface PhTextFieldProps {
   prefixText?: string;
   suffix?: React.ReactNode;
   type?: 'text' | 'email' | 'password' | 'tel' | 'number' | 'url' | 'search';
+  inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
+  autoComplete?: string;
   obscure?: boolean;
   multiline?: boolean;
   rows?: number;
@@ -39,6 +42,7 @@ export interface PhTextFieldProps {
 export function PhTextField({
   label,
   hint,
+  placeholder,
   helper,
   error,
   value,
@@ -49,6 +53,8 @@ export function PhTextField({
   prefixText,
   suffix,
   type = 'text',
+  inputMode,
+  autoComplete,
   obscure = false,
   multiline = false,
   rows = 3,
@@ -63,6 +69,7 @@ export function PhTextField({
   const [focused, setFocused] = useState(false);
   const [hidden, setHidden] = useState(true);
   const hasError = Boolean(error && error.trim().length > 0);
+  const resolvedPlaceholder = hint ?? placeholder;
 
   const ringColor = hasError
     ? 'var(--ph-danger)'
@@ -110,7 +117,7 @@ export function PhTextField({
             disabled={disabled}
             autoFocus={autoFocus}
             maxLength={maxLength}
-            placeholder={hint}
+            placeholder={resolvedPlaceholder}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
             onChange={(e) => onChange?.(e.target.value)}
@@ -124,12 +131,14 @@ export function PhTextField({
             id={id}
             name={name}
             type={obscure ? (hidden ? 'password' : 'text') : type}
+            inputMode={inputMode}
+            autoComplete={autoComplete}
             value={value}
             defaultValue={defaultValue}
             disabled={disabled}
             autoFocus={autoFocus}
             maxLength={maxLength}
-            placeholder={hint}
+            placeholder={resolvedPlaceholder}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
             onChange={(e) => onChange?.(e.target.value)}

@@ -219,6 +219,7 @@ export interface PhOtpFieldProps {
   length?: number;
   error?: boolean;
   disabled?: boolean;
+  enabled?: boolean;
 }
 
 /**
@@ -232,7 +233,9 @@ export function PhOtpField({
   length = 6,
   error = false,
   disabled = false,
+  enabled,
 }: PhOtpFieldProps) {
+  const isDisabled = enabled !== undefined ? !enabled : disabled;
   const inputRef = useRef<HTMLInputElement>(null);
   const [focused, setFocused] = useState(false);
 
@@ -253,7 +256,7 @@ export function PhOtpField({
         const char = value[i] ?? '';
         const isActive =
           focused &&
-          !disabled &&
+          !isDisabled &&
           i === Math.min(value.length, length - 1);
         const borderColor = error
           ? 'var(--ph-danger)'
@@ -281,7 +284,7 @@ export function PhOtpField({
         inputMode="numeric"
         autoComplete="one-time-code"
         maxLength={length}
-        disabled={disabled}
+        disabled={isDisabled}
         value={value}
         aria-label="Verification code"
         onFocus={() => setFocused(true)}

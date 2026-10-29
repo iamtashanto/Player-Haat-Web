@@ -15,10 +15,10 @@ export class ApiException extends Error {
   constructor(params: {
     status: number;
     code: string;
-    message: string;
+    message?: string;
     details?: Array<{ path: string; code: string; message: string }> | null;
   }) {
-    super(params.message);
+    super(params.message ?? params.code);
     this.name = 'ApiException';
     this.status = params.status;
     this.code = params.code;
@@ -158,19 +158,26 @@ export const ERROR_CODE_TO_MESSAGE_KEY: Record<string, string> = {
 };
 
 /**
+ * Returns the translation key in `messages/{en,bn}.json` for any error.
+ */
+export function getErrorMessageKey(error: unknown): string {
+  if (error instanceof ApiException) {
+    const key = ERROR_CODE_TO_MESSAGE_KEY[error.code];
+    if (key) return key;
+    if (error.code === ApiException.networkCode) return 'errNetwork';
+    if (error.code === ApiException.timeoutCode) return 'errTimeout';
+    if (error.isServerError) return 'errServer';
+    if (error.status === 403) return 'errForbidden';
+    if (error.status === 404) return 'errNotFound';
+    if (error.status === 429) return 'errRateLimited';
+  }
+  return 'errUnknown';
+}
+
+/**
  * Translate any error into a localized user-facing string using next-intl `t`.
  */
 export function getErrorText(t: (key: string) => string, error: unknown): string {
-  if (error instanceof ApiException) {
-    const key = ERROR_CODE_TO_MESSAGE_KEY[error.code];
-    if (key) return t(key);
-    if (error.code === ApiException.networkCode) return t('errNetwork');
-    if (error.code === ApiException.timeoutCode) return t('errTimeout');
-    if (error.isServerError) return t('errServer');
-    if (error.status === 403) return t('errForbidden');
-    if (error.status === 404) return t('errNotFound');
-    if (error.status === 429) return t('errRateLimited');
-  }
-  return t('errUnknown');
+  return t(getErrorMessageKey(error));
 }
 

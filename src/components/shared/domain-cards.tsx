@@ -21,18 +21,24 @@ export interface SamplePlayerCardData {
   name: string;
   avatarUrl?: string | null;
   verifiedBadge?: boolean;
+  verified?: boolean;
   sportName: string;
   positions: string[];
   experienceYears?: number;
   ratingAverage: number;
   ratingCount: number;
-  upazilaName: string;
+  upazilaName?: string;
   districtName?: string;
+  area?: string;
   khepAvailable?: boolean;
   rateMin?: number | null;
   rateMax?: number | null;
   shortlisted?: boolean;
+  skillLevel?: number;
+  statsVerified?: boolean;
 }
+
+export type PlayerCardItem = SamplePlayerCardData;
 
 /**
  * Save-for-later heart with spring pop animation matching Flutter's `ShortlistHeart`.

@@ -5,11 +5,14 @@ import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/i18n/routing';
 import { PhButton, PhPage } from '@/design-system';
 import { BrandLogo, LanguageSwitcher, ThemeToggleButton } from './header-controls';
+import { useAuth } from '@/lib/auth-context';
 import { cn } from '@/lib/utils';
 
 export function PublicShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations();
   const pathname = usePathname();
+  const { status, activeRole } = useAuth();
+  const dashboardHref = activeRole === 'RECRUITER' ? '/recruiter' : '/player';
 
   const navLinks = [
     { href: '/', label: t('tabHome') },
@@ -55,22 +58,35 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
             <LanguageSwitcher compact />
             <ThemeToggleButton />
             <div className="hidden sm:flex items-center gap-2">
-              <Link href="/player">
-                <PhButton
-                  label={t('signIn')}
-                  variant="secondary"
-                  size="small"
-                  expand={false}
-                />
-              </Link>
-              <Link href="/recruiter">
-                <PhButton
-                  label={t('getStarted')}
-                  variant="primary"
-                  size="small"
-                  expand={false}
-                />
-              </Link>
+              {status === 'authenticated' ? (
+                <Link href={dashboardHref}>
+                  <PhButton
+                    label={t('tabHome')}
+                    variant="primary"
+                    size="small"
+                    expand={false}
+                  />
+                </Link>
+              ) : (
+                <>
+                  <Link href="/auth/email">
+                    <PhButton
+                      label={t('signIn')}
+                      variant="secondary"
+                      size="small"
+                      expand={false}
+                    />
+                  </Link>
+                  <Link href="/auth">
+                    <PhButton
+                      label={t('getStarted')}
+                      variant="primary"
+                      size="small"
+                      expand={false}
+                    />
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -89,20 +105,23 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
               <p className="mt-2 max-w-md tx-footnote">{t('footerRights')}</p>
             </div>
             <div className="flex flex-wrap items-center gap-6 tx-subhead">
-              <Link href="/gallery" className="hover:text-[var(--ph-accent)] transition-colors">
-                {t('navGallery')}
+              <Link href="/about" className="hover:text-[var(--ph-accent)] transition-colors">
+                {t('settingsAbout')}
               </Link>
-              <Link href="/player" className="hover:text-[var(--ph-accent)] transition-colors">
-                {t('shellPlayer')}
-              </Link>
-              <Link href="/recruiter" className="hover:text-[var(--ph-accent)] transition-colors">
-                {t('shellRecruiter')}
+              <Link href="/contact" className="hover:text-[var(--ph-accent)] transition-colors">
+                {t('contactPageTitle')}
               </Link>
               <Link href="/privacy" className="hover:text-[var(--ph-accent)] transition-colors">
                 {t('privacyPolicy')}
               </Link>
               <Link href="/terms" className="hover:text-[var(--ph-accent)] transition-colors">
                 {t('termsOfService')}
+              </Link>
+              <Link href="/account-deletion" className="hover:text-[var(--ph-accent)] transition-colors">
+                {t('deleteAccount')}
+              </Link>
+              <Link href="/gallery" className="hover:text-[var(--ph-accent)] transition-colors">
+                {t('navGallery')}
               </Link>
             </div>
           </div>
