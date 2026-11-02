@@ -30,7 +30,7 @@ export const useRequestApplicationsList = (requestId: string | null | undefined,
   usePaged<RequestApplication>(['requests', requestId, 'applications'], `/requests/${requestId}/applications`, { status }, { enabled: !!requestId });
 export const useMyApplicationsList = (status?: string) => usePaged<MyApplication>(['applications', 'mine'], '/applications/mine', { status });
 
-function useRequestMutation<V>(fn: (v: V) => Promise<unknown>) {
+function useRequestMutation<V, R = unknown>(fn: (v: V) => Promise<R>) {
   const qc = useQueryClient();
   return useMutation({ mutationFn: fn, onSuccess: () => qc.invalidateQueries({ queryKey: ['requests'] }) });
 }
