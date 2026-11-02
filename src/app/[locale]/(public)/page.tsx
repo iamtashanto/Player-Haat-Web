@@ -22,15 +22,15 @@ import {
   PhSectionHeader,
   PitchBackdrop,
 } from '@/design-system';
+import { PhAvatar, RatingPill } from '@/design-system';
+import { formatDate, formatMoneyRange, formatTime } from '@/lib/format';
 import {
-  PlayerTileCard,
-  RequestCardView,
-  type PlayerCardItem,
-  type RequestCardItem,
-} from '@/components/shared/domain-cards';
-import {
+  areaPath,
   buildSeoMetadata,
-  FEATURED_SEO_LOCATIONS,
+  fetchOpenRequests,
+  fetchPublicSports,
+  fetchTopPlayers,
+  listActiveAreas,
 } from '@/lib/public-data';
 
 export async function generateMetadata({
@@ -59,107 +59,9 @@ export default async function PublicLandingPage({
   const locale = (rawLocale === 'en' ? 'en' : 'bn') as AppLocale;
   const t = await getTranslations({ locale });
 
-  const samplePlayers: PlayerCardItem[] = [
-    {
-      id: 'sohel-rana-football',
-      name: 'Sohel Rana',
-      verified: true,
-      area:
-        locale === 'bn'
-          ? 'কলাপাড়া, পটুয়াখালী'
-          : 'Kalapara, Patuakhali',
-      sportName: locale === 'bn' ? 'ফুটবল' : 'Football',
-      positions: ['LW', 'CAM'],
-      skillLevel: 5,
-      ratingAverage: 4.9,
-      ratingCount: 31,
-      khepAvailable: true,
-      rateMin: 1500,
-      rateMax: 3000,
-      statsVerified: true,
-      experienceYears: 6,
-      shortlisted: false,
-    },
-    {
-      id: 'rakibul-hasan-cricket',
-      name: 'Rakibul Hasan',
-      verified: true,
-      area: locale === 'bn' ? 'মিরপুর, ঢাকা' : 'Mirpur, Dhaka',
-      sportName: locale === 'bn' ? 'ক্রিকেট' : 'Cricket',
-      positions: ['ALL', 'FAST'],
-      skillLevel: 4,
-      ratingAverage: 4.8,
-      ratingCount: 19,
-      khepAvailable: true,
-      rateMin: 2000,
-      rateMax: 3500,
-      statsVerified: true,
-      experienceYears: 5,
-      shortlisted: false,
-    },
-    {
-      id: 'tanvir-ahmed-football',
-      name: 'Tanvir Ahmed',
-      verified: false,
-      area: locale === 'bn' ? 'বিয়ানীবাজার, সিলেট' : 'Beanibazar, Sylhet',
-      sportName: locale === 'bn' ? 'ফুটবল' : 'Football',
-      positions: ['GK'],
-      skillLevel: 4,
-      ratingAverage: 4.7,
-      ratingCount: 12,
-      khepAvailable: true,
-      rateMin: 1000,
-      rateMax: 1800,
-      statsVerified: false,
-      experienceYears: 3,
-      shortlisted: false,
-    },
-  ];
-
-  const sampleRequests: RequestCardItem[] = [
-    {
-      id: 'req-kalapara-gold-cup',
-      sportName: locale === 'bn' ? 'ফুটবল' : 'Football',
-      whenText:
-        locale === 'bn'
-          ? 'শুক্র, ৬ নভে · বিকেল ৩:৩০'
-          : 'Fri, 6 Nov · 3:30 PM',
-      venueText: 'Latachapli School Field, Kalapara',
-      areaText:
-        locale === 'bn'
-          ? 'কলাপাড়া, পটুয়াখালী'
-          : 'Kalapara, Patuakhali',
-      positions: ['Striker (ST)', 'Goalkeeper (GK)'],
-      spotsLeft: 2,
-      playersNeeded: 2,
-      isPaid: true,
-      budgetMin: 2000,
-      budgetMax: 3000,
-      captainName: 'Kalapara Krira Sangha',
-      captainVerified: true,
-      status: 'OPEN',
-      featured: true,
-    },
-    {
-      id: 'req-mirpur-t20-friday',
-      sportName: locale === 'bn' ? 'ক্রিকেট' : 'Cricket',
-      whenText:
-        locale === 'bn'
-          ? 'শনি, ৭ নভে · সকাল ৯:০০'
-          : 'Sat, 7 Nov · 9:00 AM',
-      venueText: 'Mirpur City Club Ground',
-      areaText: locale === 'bn' ? 'মিরপুর, ঢাকা' : 'Mirpur, Dhaka',
-      positions: ['Pace Bowler', 'Wicket-Keeper'],
-      spotsLeft: 1,
-      playersNeeded: 2,
-      isPaid: true,
-      budgetMin: 1500,
-      budgetMax: 2500,
-      captainName: 'Mirpur Knights XI',
-      captainVerified: true,
-      status: 'OPEN',
-    },
-  ];
+  const sports = await fetchPublicSports();
+  const [players, requests, areas] = await Promise.all([fetchTopPlayers(6), fetchOpenRequests(6), listActiveAreas(sports, 30)]);
+  const name = (n: { nameBn: string; nameEn: string }) => (locale === 'bn' ? n.nameBn : n.nameEn);
 
   return (
     <div className="space-y-12 md:space-y-16">
@@ -290,77 +192,69 @@ export default async function PublicLandingPage({
         </PhCard>
       </section>
 
-      {/* Featured Sports Profiles Preview (Links to `/[locale]/p/[profileSlug]`) */}
-      <section>
-        <PhSectionHeader
-          title={t('homeFeatured')}
-          actionLabel={t('seeAll')}
-        />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {samplePlayers.map((player) => (
-            <Link
-              key={player.id}
-              href={`/p/${player.id}`}
-              className="block focus:outline-none"
-            >
-              <PlayerTileCard player={player} />
-            </Link>
-          ))}
-        </div>
-      </section>
+      {players.length > 0 && (
+        <section>
+          <PhSectionHeader title={t('homeFeatured')} />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {players.map((p) => (
+              <Link key={p.id} href={`/p/${p.id}`} className="block focus:outline-none">
+                <PhCard paddingClassName="p-4">
+                  <div className="flex items-center gap-3">
+                    <PhAvatar name={p.name} url={p.avatarUrl} size={52} verified={p.verifiedBadge} />
+                    <div className="min-w-0 flex-1">
+                      <div className="tx-headline truncate">{p.name}</div>
+                      <div className="tx-footnote truncate">{name(p.location.upazila)}, {name(p.location.district)}</div>
+                      <RatingPill average={p.rating.average} count={p.rating.count} emptyLabel={t('newPlayerLabel')} />
+                    </div>
+                  </div>
+                </PhCard>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
-      {/* Open Recruitment Requests Preview (Links to `/[locale]/r/[requestId]`) */}
-      <section>
-        <PhSectionHeader
-          title={t('homeNearby')}
-          actionLabel={t('postRequest')}
-        />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {sampleRequests.map((req) => (
-            <Link
-              key={req.id}
-              href={`/r/${req.id}`}
-              className="block focus:outline-none"
-            >
-              <RequestCardView request={req} />
-            </Link>
-          ))}
-        </div>
-      </section>
+      {requests.length > 0 && (
+        <section>
+          <PhSectionHeader title={t('homeNearby')} />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {requests.map((r) => (
+              <Link key={r.id} href={`/r/${r.id}`} className="block focus:outline-none">
+                <PhCard paddingClassName="p-4">
+                  <div className="tx-headline">{r.title ?? `${formatDate(r.matchAt, locale)} · ${formatTime(r.matchAt, locale)}`}</div>
+                  <div className="tx-subhead">{name(r.sport)} · {r.venueText}</div>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <PhBadge tone={r.isPaid ? 'accent' : 'neutral'}>{r.isPaid ? formatMoneyRange(r.budgetMin, r.budgetMax, locale) || t('paidGame') : t('freeGame')}</PhBadge>
+                    <PhBadge>{t('spotsLeftCount', { count: r.spotsLeft })}</PhBadge>
+                  </div>
+                </PhCard>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
-      {/* SEO Location Hierarchy Directory (`/[locale]/[sport]/[district]/[upazila]`) */}
-      <section>
-        <div className="mb-4">
-          <h2 className="tx-title2">{t('landingBrowseByAreaTitle')}</h2>
-          <p className="mt-1 tx-subhead">{t('landingBrowseByAreaSubtitle')}</p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-          {FEATURED_SEO_LOCATIONS.map((loc) => {
-            const href = `/${loc.sportCode}/${loc.districtSlug}/${loc.upazilaSlug}`;
-            const sportLabel =
-              locale === 'bn' ? loc.sportNameBn : loc.sportNameEn;
-            const placeLabel =
-              locale === 'bn'
-                ? `${loc.upazilaNameBn}, ${loc.districtNameBn}`
-                : `${loc.upazilaNameEn}, ${loc.districtNameEn}`;
-
-            return (
-              <Link key={href} href={href}>
+      {areas.length > 0 && (
+        <section>
+          <div className="mb-4">
+            <h2 className="tx-title2">{t('landingBrowseByAreaTitle')}</h2>
+            <p className="mt-1 tx-subhead">{t('landingBrowseByAreaSubtitle')}</p>
+          </div>
+          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+            {areas.map((a) => (
+              <Link key={areaPath(a)} href={areaPath(a)}>
                 <PhCard className="flex items-center justify-between transition-colors hover:border-[var(--ph-accent)]">
                   <div>
-                    <div className="tx-caption font-semibold uppercase tracking-wider text-[var(--ph-accent)]">
-                      {sportLabel}
-                    </div>
-                    <div className="mt-0.5 tx-headline">{placeLabel}</div>
+                    <div className="tx-caption font-semibold uppercase tracking-wider text-[var(--ph-accent)]">{name(a.sport)}</div>
+                    <div className="mt-0.5 tx-headline">{name(a.upazila)}, {name(a.district)}</div>
                   </div>
                   <ArrowRight className="h-5 w-5 text-[var(--ph-text-tertiary)]" />
                 </PhCard>
               </Link>
-            );
-          })}
-        </div>
-      </section>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Mobile App Download Banner (Play Store + App Store coming soon) */}
       <section>

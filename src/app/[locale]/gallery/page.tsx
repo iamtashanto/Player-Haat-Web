@@ -51,7 +51,6 @@ import {
   RatingStars,
   showPhToast,
 } from '@/design-system';
-import { PlayerTileCard, RequestCardView } from '@/components/shared/domain-cards';
 import { RoleSwitcherPill } from '@/components/shells/header-controls';
 import { formatMoneyRange, formatNumber, formatRatingText } from '@/lib/format';
 
@@ -473,51 +472,6 @@ export default function ComponentGalleryPage() {
             </div>
           </section>
 
-          {/* 9. Domain Cards (PlayerTile & RequestCard) */}
-          <section className="lg:col-span-2">
-            <PhSectionHeader title="Domain Cards (1:1 Flutter Parity)" />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <PlayerTileCard
-                player={{
-                  id: 'demo-player-1',
-                  name: 'Sohel Rana',
-                  verifiedBadge: true,
-                  sportName: locale === 'bn' ? 'ফুটবল' : 'Football',
-                  positions: ['GK', 'CB'],
-                  experienceYears: 6,
-                  ratingAverage: 4.8,
-                  ratingCount: 31,
-                  upazilaName: locale === 'bn' ? 'কলাপাড়া' : 'Kalapara',
-                  districtName: locale === 'bn' ? 'পটুয়াখালী' : 'Patuakhali',
-                  khepAvailable: true,
-                  rateMin: 400,
-                  rateMax: 600,
-                  shortlisted: true,
-                }}
-                onTap={() => showPhToast('Player card tapped')}
-              />
-
-              <RequestCardView
-                request={{
-                  id: 'demo-req-1',
-                  whenText: locale === 'bn' ? 'আজ · সন্ধ্যা ৬:৩০' : 'Today · 6:30 PM',
-                  sportName: locale === 'bn' ? 'ফুটবল' : 'Football',
-                  positionsText: 'GK, CB',
-                  venueText: locale === 'bn' ? 'লতাচাপলী স্কুল মাঠ' : 'Latachapli School Field',
-                  locationShort: locale === 'bn' ? 'কলাপাড়া, পটুয়াখালী' : 'Kalapara, Patuakhali',
-                  isPaid: true,
-                  budgetMin: 500,
-                  budgetMax: 700,
-                  spotsLeft: 2,
-                  isBoosted: true,
-                  captainName: 'Imran Hossain',
-                  captainRatingAvg: 4.9,
-                  captainRatingCount: 18,
-                }}
-                onTap={() => showPhToast('Request card tapped')}
-              />
-            </div>
-          </section>
 
           {/* 10. Loading, Empty, Offline & Error States */}
           <section>

@@ -8,7 +8,7 @@ import { useAuth } from '@/lib/auth-context';
 import { useSportsCatalog, type SportCatalogItem } from '@/lib/player-api';
 import type { PlayerRequest } from '@/lib/api/requests';
 import { useToggleShortlistHeart, type PlayerCard } from '@/lib/api/social';
-import { ShortlistHeart } from '@/components/shared/domain-cards';
+import { ShortlistHeart } from '@/components/app/shortlist-heart';
 import { useFmt } from './kit';
 
 type Named = { nameBn: string; nameEn: string };

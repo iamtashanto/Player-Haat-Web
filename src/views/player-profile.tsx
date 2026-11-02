@@ -5,7 +5,7 @@ import { BadgeCheck, Flag, MapPin, MessageCircle, Share2, UserPlus } from 'lucid
 import { PhAvatar, PhBadge, PhButton, PhCard, PhChip, RatingPill, ErrorState, Skeleton } from '@/design-system';
 import { useAuth } from '@/lib/auth-context';
 import { usePlayer, usePlayerRatings, useToggleShortlistHeart, type PlayerSportDetail } from '@/lib/api/social';
-import { ShortlistHeart } from '@/components/shared/domain-cards';
+import { ShortlistHeart } from '@/components/app/shortlist-heart';
 import { ContactReveal, InviteSheet, ReportSheet, useStartChat } from '@/components/app/actions';
 import { LoadMore, Screen, SectionTitle, useFmt } from '@/components/app/kit';
 import { useSports } from '@/components/app/cards';
