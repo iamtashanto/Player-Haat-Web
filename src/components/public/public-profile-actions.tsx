@@ -142,7 +142,7 @@ export function PublicProfileRecruiterActions({
                   size="medium"
                 />
               </a>
-              <Link href={`/recruiter?invite=${encodeURIComponent(profileId)}`}>
+              <Link href={`/players?invite=${encodeURIComponent(profileId)}`}>
                 <PhButton
                   label={t('inviteAction')}
                   icon={<Send className="h-4 w-4" />}
@@ -160,7 +160,7 @@ export function PublicProfileRecruiterActions({
                 size="medium"
                 onPressed={handleRevealPhone}
               />
-              <Link href={`/recruiter?chat=${encodeURIComponent(profileId)}`}>
+              <Link href={`/players?chat=${encodeURIComponent(profileId)}`}>
                 <PhButton
                   label={t('chatAction')}
                   icon={<MessageCircle className="h-4 w-4" />}
@@ -168,7 +168,7 @@ export function PublicProfileRecruiterActions({
                   size="medium"
                 />
               </Link>
-              <Link href={`/recruiter?invite=${encodeURIComponent(profileId)}`}>
+              <Link href={`/players?invite=${encodeURIComponent(profileId)}`}>
                 <PhButton
                   label={t('inviteAction')}
                   icon={<Send className="h-4 w-4" />}

@@ -216,7 +216,7 @@ export function SettingsView() {
                 onPressed={async () => {
                   const next = activeRole === 'PLAYER' ? 'RECRUITER' : 'PLAYER';
                   await switchActiveRole(next);
-                  router.push(next === 'RECRUITER' ? '/recruiter' : '/player');
+                  router.push('/home');
                 }}
               />
             ) : (
@@ -227,7 +227,7 @@ export function SettingsView() {
                 onPressed={async () => {
                   const other = activeRole === 'PLAYER' ? 'RECRUITER' : 'PLAYER';
                   await enableOtherRole(other);
-                  router.push(other === 'RECRUITER' ? '/recruiter' : '/player');
+                  router.push('/home');
                 }}
               />
             )}

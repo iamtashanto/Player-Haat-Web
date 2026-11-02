@@ -164,7 +164,7 @@ describe('Middleware RBAC route protection (resolveRouteProtection)', () => {
       hasRefreshCookie: true,
       meta,
     });
-    expect(fromAuth.redirectPath).toBe('/bn/player');
+    expect(fromAuth.redirectPath).toBe('/bn/home');
 
     const onVerifyEmail = resolveRouteProtection({
       locale: 'bn',
@@ -175,19 +175,23 @@ describe('Middleware RBAC route protection (resolveRouteProtection)', () => {
     expect(onVerifyEmail.redirectPath).toBeUndefined();
   });
 
-  it('blocks recruiters without a player profile from player edit routes', () => {
+  it('sends a recruiter who has not set up yet to recruiter setup', () => {
     const res = resolveRouteProtection({
       locale: 'en',
-      pathWithoutLocale: '/player/profiles/edit',
+      pathWithoutLocale: '/auth',
       hasRefreshCookie: true,
-      meta: {
-        userId: 'rec_1',
-        role: 'RECRUITER',
-        activeRole: 'RECRUITER',
-        hasPlayerProfile: false,
-        hasRecruiterProfile: true,
-      },
+      meta: { userId: 'rec_1', role: 'RECRUITER', activeRole: 'RECRUITER', hasRecruiterProfile: false },
     });
-    expect(res.redirectPath).toBe('/en/recruiter');
+    expect(res.redirectPath).toBe('/en/setup/recruiter');
+  });
+
+  it('guards every app route for signed-out visitors, and leaves public pages alone', () => {
+    const base = { locale: 'en' as const, hasRefreshCookie: false, meta: null };
+    expect(resolveRouteProtection({ ...base, pathWithoutLocale: '/games', search: '?tab=mine' }).redirectPath).toBe(
+      '/en/auth?next=%2Fgames%3Ftab%3Dmine',
+    );
+    expect(resolveRouteProtection({ ...base, pathWithoutLocale: '/chat/abc' }).redirectPath).toContain('/en/auth?next=');
+    expect(resolveRouteProtection({ ...base, pathWithoutLocale: '/p/some-player' }).redirectPath).toBeUndefined();
+    expect(resolveRouteProtection({ ...base, pathWithoutLocale: '/football/dhaka/savar' }).redirectPath).toBeUndefined();
   });
 });

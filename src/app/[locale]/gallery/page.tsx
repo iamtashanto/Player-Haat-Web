@@ -106,10 +106,10 @@ export default function ComponentGalleryPage() {
               <Link href="/">
                 <PhButton label={t('shellPublic')} variant="secondary" size="small" expand={false} />
               </Link>
-              <Link href="/player">
+              <Link href="/home">
                 <PhButton label={t('shellPlayer')} variant="secondary" size="small" expand={false} />
               </Link>
-              <Link href="/recruiter">
+              <Link href="/home">
                 <PhButton label={t('shellRecruiter')} variant="secondary" size="small" expand={false} />
               </Link>
             </div>
@@ -166,13 +166,13 @@ export default function ComponentGalleryPage() {
                 icon={<User className="h-[18px] w-[18px]" />}
                 title={t('shellPlayer')}
                 subtitle="Player feed, sports profiles, applications & ratings"
-                onTap={() => router.push('/player')}
+                onTap={() => router.push('/home')}
               />
               <PhRow
                 icon={<Trophy className="h-[18px] w-[18px]" />}
                 title={t('shellRecruiter')}
                 subtitle="Discover players, shortlists, recruitment requests"
-                onTap={() => router.push('/recruiter')}
+                onTap={() => router.push('/home')}
               />
             </PhGroup>
           </section>

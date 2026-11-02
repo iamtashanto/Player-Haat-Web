@@ -12,7 +12,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations();
   const pathname = usePathname();
   const { status, activeRole } = useAuth();
-  const dashboardHref = activeRole === 'RECRUITER' ? '/recruiter' : '/player';
+  const dashboardHref = '/home';
 
   const navLinks = [
     { href: '/', label: t('tabHome') },
