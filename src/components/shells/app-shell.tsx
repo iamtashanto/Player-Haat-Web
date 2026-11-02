@@ -18,6 +18,8 @@ import { useTranslations } from 'next-intl';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
 import { usePhPreferences, type ActiveRole } from '@/components/providers';
 import { useAuth } from '@/lib/auth-context';
+import { useUnreadCount } from '@/lib/api/notifications';
+import { CreditCard, Send, Users } from 'lucide-react';
 import {
   GlassContainer,
   OfflineBanner,
@@ -53,7 +55,8 @@ export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { setActiveRole } = usePhPreferences();
-  const { me, activeRole: role, switchActiveRole, hasBothRoles, enableOtherRole, logout } = useAuth();
+  const { me, status, activeRole: role, switchActiveRole, hasBothRoles, enableOtherRole, logout } = useAuth();
+  const unread = useUnreadCount(status === 'authenticated');
   const [online, setOnline] = useState(true);
 
   const displayName = me?.name ?? '';
@@ -95,22 +98,22 @@ export function AppShell({ children }: AppShellProps) {
       label: t('tabAlerts'),
       href: '/alerts',
       icon: <Bell className="h-6 w-6" />,
-      badge: true,
+      badge: (unread.data ?? 0) > 0,
     },
     { id: 'me', label: t('tabMe'), href: '/me', icon: <User className="h-6 w-6" /> },
   ];
 
   // Extra desktop links (only screens that exist; each phase adds its own).
-  const desktopSecondaryNav =
-    role === 'RECRUITER'
-      ? [
-          { id: 'shortlist', label: t('shortlistTitle'), href: '/shortlist', icon: <Heart className="h-5 w-5" /> },
-          { id: 'settings', label: t('settingsTitle'), href: '/settings', icon: <Settings className="h-5 w-5" /> },
-        ]
-      : [
-          { id: 'profiles', label: t('navMyProfiles'), href: '/profile/edit', icon: <Briefcase className="h-5 w-5" /> },
-          { id: 'settings', label: t('settingsTitle'), href: '/settings', icon: <Settings className="h-5 w-5" /> },
-        ];
+  const desktopSecondaryNav = [
+    ...(role === 'RECRUITER'
+      ? [{ id: 'shortlist', label: t('shortlistTitle'), href: '/shortlist', icon: <Heart className="h-5 w-5" /> }]
+      : [{ id: 'profiles', label: t('navMyProfiles'), href: '/profile/edit', icon: <Briefcase className="h-5 w-5" /> }]),
+    { id: 'messages', label: t('messagesTitle'), href: '/messages', icon: <MessageCircle className="h-5 w-5" /> },
+    { id: 'invites', label: t('meInvitations'), href: '/invites', icon: <Send className="h-5 w-5" /> },
+    { id: 'teams', label: t('teamsTitle'), href: '/teams', icon: <Users className="h-5 w-5" /> },
+    { id: 'wallet', label: t('walletTitle'), href: '/wallet', icon: <CreditCard className="h-5 w-5" /> },
+    { id: 'settings', label: t('settingsTitle'), href: '/settings', icon: <Settings className="h-5 w-5" /> },
+  ];
 
   const activeIndex = Math.max(
     0,
@@ -315,20 +318,17 @@ export function AppShell({ children }: AppShellProps) {
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <LanguageSwitcher compact />
                 <ThemeToggleButton />
-                <Link href="/gallery">
-                  <PhButton
-                    label={t('navGallery')}
-                    variant="secondary"
-                    size="small"
-                    expand={false}
-                  />
-                </Link>
+                {process.env.NODE_ENV !== 'production' && (
+                  <Link href="/gallery">
+                    <PhButton label={t('navGallery')} variant="secondary" size="small" expand={false} />
+                  </Link>
+                )}
               </div>
             </div>
           </div>
 
           {/* Screen Body */}
-          <main className="w-full pt-2 md:pt-4">{children}</main>
+          <main className="w-full pt-2 md:pt-4">{status === 'loading' ? null : children}</main>
         </div>
       </div>
 

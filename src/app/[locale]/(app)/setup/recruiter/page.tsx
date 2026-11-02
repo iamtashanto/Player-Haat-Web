@@ -1,7 +1,7 @@
 'use client';
 
-import RecruiterSetup from '@/views/recruiter/onboarding';
+import SetupRecruiterView from '@/views/setup-recruiter';
 
 export default function Page() {
-  return <RecruiterSetup />;
+  return <SetupRecruiterView />;
 }

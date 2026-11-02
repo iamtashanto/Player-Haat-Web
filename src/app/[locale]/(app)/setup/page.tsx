@@ -1,9 +1,9 @@
 'use client';
 
-import { RoleView } from '@/components/shells/role-view';
 import { Redirect } from '@/components/shells/redirect';
-import PlayerSetup from '@/views/player/onboarding';
+import { RoleView } from '@/components/shells/role-view';
+import SetupPlayerView from '@/views/setup-player';
 
 export default function Page() {
-  return <RoleView player={<PlayerSetup />} recruiter={<Redirect to="/setup/recruiter" />} />;
+  return <RoleView player={<SetupPlayerView />} recruiter={<Redirect to="/setup/recruiter" />} />;
 }
