@@ -1,9 +1,7 @@
 'use client';
 
-import { RoleView } from '@/components/shells/role-view';
-import PlayerPlayers from '@/views/player/players';
-import RecruiterDiscover from '@/views/recruiter/discover';
+import PlayersView from '@/views/players';
 
 export default function Page() {
-  return <RoleView player={<PlayerPlayers />} recruiter={<RecruiterDiscover />} />;
+  return <PlayersView />;
 }

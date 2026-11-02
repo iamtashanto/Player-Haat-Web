@@ -276,6 +276,20 @@ export async function apiRequest<T = unknown>(
   path: string,
   options: ApiRequestOptions = {},
 ): Promise<T> {
+  return (await apiRequestWithMeta<T>(path, options)).data;
+}
+
+export interface ApiPageMeta {
+  nextCursor?: string | null;
+  limit?: number;
+  [key: string]: unknown;
+}
+
+/** Like `apiRequest`, but also returns the response `meta` (cursor pagination: `meta.nextCursor`). */
+export async function apiRequestWithMeta<T = unknown>(
+  path: string,
+  options: ApiRequestOptions = {},
+): Promise<{ data: T; meta: ApiPageMeta }> {
   const {
     method = 'GET',
     body,
@@ -352,7 +366,7 @@ export async function apiRequest<T = unknown>(
   }
 
   if (res.status === 204) {
-    return undefined as T;
+    return { data: undefined as T, meta: {} };
   }
 
   const json = (await res.json().catch(() => null)) as {
@@ -374,5 +388,8 @@ export async function apiRequest<T = unknown>(
     });
   }
 
-  return (json && 'data' in json ? json.data : (json as unknown)) as T;
+  return {
+    data: (json && 'data' in json ? json.data : (json as unknown)) as T,
+    meta: (json?.meta ?? {}) as ApiPageMeta,
+  };
 }
