@@ -838,5 +838,8 @@
   "accountDeletionStep3": "৩. সাথে সাথে আপনার প্রোফাইল, খেলার প্রোফাইল এবং আপলোড করা সব ছবি মুছে ফেলা হবে।",
   "accountDeletionWhatIsDeletedTitle": "কী কী তথ্য মুছে যায়",
   "accountDeletionWhatIsDeletedBody": "আপনার নাম, ফোন নম্বর, ইমেইল, লগইন সংযোগ, প্রোফাইল ছবি, খেলার ছবি ও ভিডিও লিংক স্থায়ীভাবে মুছে যায়। আগের ম্যাচের রেটিং বেনামে থাকে যেন অন্যদের রেটিং সঠিক থাকে।",
-  "accountDeletionEmailFallback": "আপনি যদি অ্যাকাউন্টে ঢুকতে না পারেন, তবে আপনার নিবন্ধিত ইমেইল বা ফোন নম্বর উল্লেখ করে 'DELETE ACCOUNT' শিরোনামে support@playerhaat.com-এ ইমেইল করুন।"
+  "accountDeletionEmailFallback": "আপনি যদি অ্যাকাউন্টে ঢুকতে না পারেন, তবে আপনার নিবন্ধিত ইমেইল বা ফোন নম্বর উল্লেখ করে 'DELETE ACCOUNT' শিরোনামে support@playerhaat.com-এ ইমেইল করুন।",
+  "navPrimary": "প্রধান নেভিগেশন",
+  "navAbout": "আমাদের সম্পর্কে",
+  "navContact": "যোগাযোগ"
 }

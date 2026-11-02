@@ -1,327 +1,89 @@
 import React from 'react';
-import { MapPin, Trophy, Users } from 'lucide-react';
+import { notFound } from 'next/navigation';
+import { MapPin } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { Link, type AppLocale } from '@/i18n/routing';
-import {
-  PhBadge,
-  PhButton,
-  PhCard,
-  PhSectionHeader,
-} from '@/design-system';
-import {
-  PlayerTileCard,
-  RequestCardView,
-  type PlayerCardItem,
-  type RequestCardItem,
-} from '@/components/shared/domain-cards';
-import {
-  buildSeoMetadata,
-  FEATURED_SEO_LOCATIONS,
-} from '@/lib/public-data';
+import { PhAvatar, PhBadge, PhCard, RatingPill } from '@/design-system';
+import { formatDate, formatMoneyRange, formatTime } from '@/lib/format';
+import { buildSeoMetadata, fetchPlayersInArea, fetchPublicSports, fetchRequestsInArea, resolveArea } from '@/lib/public-data';
 
-function formatSlugTitle(slug: string): string {
-  return decodeURIComponent(slug)
-    .split('-')
-    .filter(Boolean)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(' ');
+type Params = Promise<{ locale: string; sport: string; district: string; upazila: string }>;
+const loc = (l: string) => (l === 'en' ? 'en' : 'bn') as AppLocale;
+
+async function load(p: { sport: string; district: string; upazila: string }) {
+  const sports = await fetchPublicSports();
+  const sport = sports.find((s) => s.code.toLowerCase() === p.sport.toLowerCase());
+  const area = sport ? await resolveArea(p.district, p.upazila) : null;
+  return { sport, area };
 }
 
-function resolvePlaceNames(
-  sport: string,
-  district: string,
-  upazila: string,
-  locale: AppLocale,
-) {
-  const matched = FEATURED_SEO_LOCATIONS.find(
-    (x) =>
-      x.sportCode === sport.toLowerCase() &&
-      x.districtSlug === district.toLowerCase() &&
-      x.upazilaSlug === upazila.toLowerCase(),
-  );
-
-  const sportLabel = matched
-    ? locale === 'bn'
-      ? matched.sportNameBn
-      : matched.sportNameEn
-    : sport.toLowerCase() === 'cricket'
-      ? locale === 'bn'
-        ? 'ক্রিকেট'
-        : 'Cricket'
-      : locale === 'bn'
-        ? 'ফুটবল'
-        : 'Football';
-
-  const districtLabel = matched
-    ? locale === 'bn'
-      ? matched.districtNameBn
-      : matched.districtNameEn
-    : formatSlugTitle(district);
-
-  const upazilaLabel = matched
-    ? locale === 'bn'
-      ? matched.upazilaNameBn
-      : matched.upazilaNameEn
-    : formatSlugTitle(upazila);
-
-  return { sportLabel, districtLabel, upazilaLabel };
-}
-
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{
-    locale: string;
-    sport: string;
-    district: string;
-    upazila: string;
-  }>;
-}) {
-  const { locale: rawLocale, sport, district, upazila } = await params;
-  const locale = (rawLocale === 'en' ? 'en' : 'bn') as AppLocale;
-  const t = await getTranslations({ locale });
-
-  const { sportLabel, districtLabel, upazilaLabel } = resolvePlaceNames(
-    sport,
-    district,
-    upazila,
-    locale,
-  );
-
-  const title = `${t('locationHeroTitle', {
-    sport: sportLabel,
-    upazila: upazilaLabel,
-    district: districtLabel,
-  })} | PlayerHaat`;
-  const description = t('locationHeroSubtitle', {
-    sport: sportLabel,
-    upazila: upazilaLabel,
-    district: districtLabel,
-  });
-
+export async function generateMetadata({ params }: { params: Params }) {
+  const { locale: raw, ...rest } = await params;
+  const locale = loc(raw);
+  const { sport, area } = await load(rest);
+  if (!sport || !area) return { title: 'PlayerHaat', robots: { index: false } };
+  const s = locale === 'bn' ? sport.nameBn : sport.nameEn;
+  const place = locale === 'bn' ? `${area.upazila.nameBn}, ${area.district.nameBn}` : `${area.upazila.nameEn}, ${area.district.nameEn}`;
   return buildSeoMetadata({
     locale,
-    path: `/${sport.toLowerCase()}/${district.toLowerCase()}/${upazila.toLowerCase()}`,
-    title,
-    description,
+    path: `/${sport.code.toLowerCase()}/${rest.district}/${rest.upazila}`,
+    title: locale === 'bn' ? `${place} — ${s} খেলোয়াড় ও ম্যাচ | PlayerHaat` : `${s} players & games in ${place} | PlayerHaat`,
+    description: locale === 'bn' ? `${place}-এর ${s} খেলোয়াড় ও খোলা ম্যাচ।` : `Find ${s} players and open games in ${place}.`,
   });
 }
 
-export default async function LocationSeoPage({
-  params,
-}: {
-  params: Promise<{
-    locale: string;
-    sport: string;
-    district: string;
-    upazila: string;
-  }>;
-}) {
-  const { locale: rawLocale, sport, district, upazila } = await params;
-  const locale = (rawLocale === 'en' ? 'en' : 'bn') as AppLocale;
+export default async function LocationLandingPage({ params }: { params: Params }) {
+  const { locale: raw, ...rest } = await params;
+  const locale = loc(raw);
   const t = await getTranslations({ locale });
-
-  const { sportLabel, districtLabel, upazilaLabel } = resolvePlaceNames(
-    sport,
-    district,
-    upazila,
-    locale,
-  );
-
-  const isCricket = sport.toLowerCase() === 'cricket';
-  const areaDisplay = `${upazilaLabel}, ${districtLabel}`;
-
-  const topPlayers: PlayerCardItem[] = [
-    {
-      id: isCricket ? 'sohel-rana-cricket' : 'sohel-rana-football',
-      name: 'Sohel Rana',
-      verified: true,
-      area: areaDisplay,
-      sportName: sportLabel,
-      positions: isCricket ? ['ALL', 'FAST'] : ['LW', 'CAM'],
-      skillLevel: 5,
-      ratingAverage: 4.9,
-      ratingCount: 31,
-      khepAvailable: true,
-      rateMin: 1500,
-      rateMax: 3000,
-      statsVerified: true,
-      experienceYears: 6,
-      shortlisted: false,
-    },
-    {
-      id: `arif-hossain-${sport.toLowerCase()}`,
-      name: 'Arif Hossain',
-      verified: true,
-      area: areaDisplay,
-      sportName: sportLabel,
-      positions: isCricket ? ['BAT', 'WK'] : ['ST', 'RW'],
-      skillLevel: 4,
-      ratingAverage: 4.8,
-      ratingCount: 18,
-      khepAvailable: true,
-      rateMin: 1200,
-      rateMax: 2500,
-      statsVerified: true,
-      experienceYears: 5,
-      shortlisted: false,
-    },
-    {
-      id: `mehedi-hasan-${sport.toLowerCase()}`,
-      name: 'Mehedi Hasan',
-      verified: false,
-      area: areaDisplay,
-      sportName: sportLabel,
-      positions: isCricket ? ['SPIN'] : ['CB', 'CDM'],
-      skillLevel: 4,
-      ratingAverage: 4.7,
-      ratingCount: 11,
-      khepAvailable: true,
-      rateMin: 1000,
-      rateMax: 1800,
-      statsVerified: false,
-      experienceYears: 4,
-      shortlisted: false,
-    },
-  ];
-
-  const openRequests: RequestCardItem[] = [
-    {
-      id: isCricket ? 'req-mirpur-t20-friday' : 'req-kalapara-gold-cup',
-      sportName: sportLabel,
-      whenText:
-        locale === 'bn'
-          ? 'শুক্র, ৬ নভে · বিকেল ৩:৩০'
-          : 'Fri, 6 Nov · 3:30 PM',
-      venueText: `${upazilaLabel} Central Ground`,
-      areaText: areaDisplay,
-      positions: isCricket
-        ? ['Pace Bowler', 'Wicket-Keeper']
-        : ['Striker (ST)', 'Goalkeeper (GK)'],
-      spotsLeft: 2,
-      playersNeeded: 2,
-      isPaid: true,
-      budgetMin: 1500,
-      budgetMax: 3000,
-      captainName: `${upazilaLabel} Sporting Club`,
-      captainVerified: true,
-      status: 'OPEN',
-      featured: true,
-    },
-  ];
-
+  const { sport, area } = await load(rest);
+  if (!sport || !area) notFound();
+  const [players, requests] = await Promise.all([fetchPlayersInArea(sport.id, area), fetchRequestsInArea(sport.id, area)]);
+  const name = (n: { nameBn: string; nameEn: string }) => (locale === 'bn' ? n.nameBn : n.nameEn);
+  const place = `${name(area.upazila)}, ${name(area.district)}`;
   return (
-    <div className="space-y-10">
-      {/* Breadcrumb + Location Hero */}
-      <PhCard className="p-6 sm:p-10 space-y-4">
-        <div className="flex flex-wrap items-center gap-2 tx-caption">
-          <Link href="/" className="hover:text-[var(--ph-accent)]">
-            PlayerHaat
-          </Link>
-          <span>/</span>
-          <span className="font-semibold text-[var(--ph-accent)]">
-            {sportLabel}
-          </span>
-          <span>/</span>
-          <span>{districtLabel}</span>
-          <span>/</span>
-          <span className="font-semibold text-[var(--ph-text)]">
-            {upazilaLabel}
-          </span>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <PhBadge tone="accent">{sportLabel}</PhBadge>
-          <span className="inline-flex items-center gap-1 tx-subhead">
-            <MapPin className="h-4 w-4 text-[var(--ph-accent)]" />
-            <span>{areaDisplay}</span>
-          </span>
-        </div>
-
-        <h1 className="tx-title1 sm:text-[32px]">
-          {t('locationHeroTitle', {
-            sport: sportLabel,
-            upazila: upazilaLabel,
-            district: districtLabel,
-          })}
-        </h1>
-
-        <p className="max-w-2xl tx-body text-[var(--ph-text-secondary)]">
-          {t('locationHeroSubtitle', {
-            sport: sportLabel,
-            upazila: upazilaLabel,
-            district: districtLabel,
-          })}
-        </p>
-
-        <div className="flex flex-wrap items-center gap-3 pt-2">
-          <Link href="/auth">
-            <PhButton
-              label={t('createPlayerProfile')}
-              icon={<Trophy className="h-4 w-4" />}
-              size="medium"
-              expand={false}
-            />
-          </Link>
-          <Link href="/auth">
-            <PhButton
-              label={t('postRequest')}
-              icon={<Users className="h-4 w-4" />}
-              variant="secondary"
-              size="medium"
-              expand={false}
-            />
-          </Link>
-        </div>
-      </PhCard>
-
-      {/* Top Players in this Area */}
+    <div className="mx-auto max-w-4xl space-y-8">
+      <header>
+        <h1 className="tx-title1">{name(sport)} · {place}</h1>
+        <p className="mt-1 inline-flex items-center gap-1 tx-subhead"><MapPin className="h-4 w-4" aria-hidden />{place}</p>
+      </header>
       <section>
-        <PhSectionHeader title={`${t('homeFeatured')} — ${areaDisplay}`} />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {topPlayers.map((player) => (
-            <Link key={player.id} href={`/p/${player.id}`}>
-              <PlayerTileCard player={player} />
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* Open Recruitment Requests in this Area */}
-      <section>
-        <PhSectionHeader title={`${t('homeNearby')} — ${areaDisplay}`} />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {openRequests.map((req) => (
-            <Link key={req.id} href={`/r/${req.id}`}>
-              <RequestCardView request={req} />
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* Other Areas Quick Links */}
-      <section>
-        <PhSectionHeader title={t('landingBrowseByAreaTitle')} />
-        <div className="flex flex-wrap gap-2">
-          {FEATURED_SEO_LOCATIONS.map((loc) => {
-            const href = `/${loc.sportCode}/${loc.districtSlug}/${loc.upazilaSlug}`;
-            const label =
-              locale === 'bn'
-                ? `${loc.sportNameBn} · ${loc.upazilaNameBn}, ${loc.districtNameBn}`
-                : `${loc.sportNameEn} · ${loc.upazilaNameEn}, ${loc.districtNameEn}`;
-            return (
-              <Link
-                key={href}
-                href={href}
-                className="rounded-full border border-[var(--ph-border)] bg-[var(--ph-surface)] px-3.5 py-2 tx-caption font-semibold text-[var(--ph-text-secondary)] hover:border-[var(--ph-accent)] hover:text-[var(--ph-accent)] transition-colors"
-              >
-                {label}
+        <h2 className="tx-title3 mb-3">{t('tabPlayers')}</h2>
+        {players.length === 0 ? (
+          <p className="tx-subhead">{t('searchEmptyTitle')}</p>
+        ) : (
+          <div className="grid gap-3 md:grid-cols-2">
+            {players.map((p) => (
+              <Link key={p.id} href={`/p/${p.id}`}>
+                <PhCard paddingClassName="p-4">
+                  <div className="flex items-center gap-3">
+                    <PhAvatar name={p.name} url={p.avatarUrl} size={48} verified={p.verifiedBadge} />
+                    <div className="min-w-0 flex-1"><div className="tx-headline truncate">{p.name}</div><RatingPill average={p.rating.average} count={p.rating.count} emptyLabel={t('newPlayerLabel')} /></div>
+                  </div>
+                </PhCard>
               </Link>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        )}
+      </section>
+      <section>
+        <h2 className="tx-title3 mb-3">{t('homeNearby')}</h2>
+        {requests.length === 0 ? (
+          <p className="tx-subhead">{t('homeEmptyTitle')}</p>
+        ) : (
+          <div className="grid gap-3 md:grid-cols-2">
+            {requests.map((r) => (
+              <Link key={r.id} href={`/r/${r.id}`}>
+                <PhCard paddingClassName="p-4">
+                  <div className="tx-headline">{r.title ?? `${formatDate(r.matchAt, locale)} · ${formatTime(r.matchAt, locale)}`}</div>
+                  <div className="tx-subhead">{r.venueText}</div>
+                  <div className="mt-2"><PhBadge tone={r.isPaid ? 'accent' : 'neutral'} label={r.isPaid ? formatMoneyRange(r.budgetMin, r.budgetMax, locale) || t('paidGame') : t('freeGame')} /></div>
+                </PhCard>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );
 }
-

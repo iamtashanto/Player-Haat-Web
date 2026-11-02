@@ -193,8 +193,8 @@ export default function EmailAuthPage() {
               onPressed={() =>
                 router.push(
                   email.trim()
-                    ? `/auth/forgot-password?email=${encodeURIComponent(email.trim())}`
-                    : '/auth/forgot-password',
+                    ? `/auth/forgot?email=${encodeURIComponent(email.trim())}`
+                    : '/auth/forgot',
                 )
               }
             />

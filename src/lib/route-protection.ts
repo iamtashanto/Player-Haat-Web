@@ -1,13 +1,23 @@
 import type { AppLocale } from '@/i18n/routing';
 import type { AppRole, SessionMetaCookie } from './auth-types';
 
+/** First path segments of the signed-in app (the `(app)` route group). Everything else is public or auth. */
+export const APP_SEGMENTS = [
+  'home', 'players', 'games', 'alerts', 'me', 'settings', 'shortlist', 'profile', 'setup', 'invites', 'wallet',
+  'messages', 'chat', 'teams', 'team', 'verify', 'request', 'rate', 'player', 'recruiter',
+] as const;
+
+export function isAppPath(pathWithoutLocale: string): boolean {
+  const seg = pathWithoutLocale.split('/').filter(Boolean)[0];
+  return (APP_SEGMENTS as readonly string[]).includes(seg ?? '');
+}
+
 /**
  * Pure RBAC route protection decision engine used by `src/middleware.ts`.
- * Enforces:
- * 1. `ADMIN` / `SUPER_ADMIN` rejection (`AUTH_ADMIN_DASHBOARD_ONLY`)
- * 2. Unauthenticated visitor redirection from `/player/*` and `/recruiter/*` to `/[locale]/auth?next=...`
- * 3. Recruiter cannot edit player-owned data (`/player/profiles/edit`, `/player/onboarding`, `/player/profile/edit`)
- * 4. Signed-in user redirection away from `/auth` (except `/auth/verify-email`) to their active role area or onboarding
+ * 1. `ADMIN` / `SUPER_ADMIN` accounts are refused (`admin_dashboard_only`).
+ * 2. Signed-out visitors on app routes go to `/auth?next=...`.
+ * 3. Signed-in users on `/auth` (except `/auth/verify-email`) go to `/home`, or to the setup they still owe
+ *    (recruiters can't skip theirs). The API stays the real authority on what each role may do.
  */
 export function resolveRouteProtection(params: {
   locale: AppLocale;
@@ -17,82 +27,32 @@ export function resolveRouteProtection(params: {
   activeRoleCookie?: string | null;
   search?: string;
 }): { redirectPath?: string; clearCookies?: boolean } {
-  const {
-    locale,
-    pathWithoutLocale,
-    hasRefreshCookie,
-    meta,
-    activeRoleCookie,
-    search = '',
-  } = params;
+  const { locale, pathWithoutLocale, hasRefreshCookie, meta, activeRoleCookie, search = '' } = params;
 
-  const isPlayerRoute =
-    pathWithoutLocale === '/player' || pathWithoutLocale.startsWith('/player/');
-  const isRecruiterRoute =
-    pathWithoutLocale === '/recruiter' ||
-    pathWithoutLocale.startsWith('/recruiter/');
-  const isAuthRoute =
-    pathWithoutLocale === '/auth' || pathWithoutLocale.startsWith('/auth/');
+  const isAuthRoute = pathWithoutLocale === '/auth' || pathWithoutLocale.startsWith('/auth/');
   const isVerifyEmailRoute = pathWithoutLocale === '/auth/verify-email';
-
   const isAuthenticated = Boolean(hasRefreshCookie && meta);
 
-  // 1. Reject ADMIN / SUPER_ADMIN accounts immediately from this website
   if (meta && (meta.role === 'ADMIN' || meta.role === 'SUPER_ADMIN')) {
-    return {
-      redirectPath: `/${locale}/auth?error=admin_dashboard_only`,
-      clearCookies: true,
-    };
+    return { redirectPath: `/${locale}/auth?error=admin_dashboard_only`, clearCookies: true };
   }
 
-  // 2. Protect Player and Recruiter areas when unauthenticated
-  if (!isAuthenticated && (isPlayerRoute || isRecruiterRoute)) {
+  if (!isAuthenticated && isAppPath(pathWithoutLocale)) {
     const nextTarget = encodeURIComponent(`${pathWithoutLocale}${search}`);
-    return {
-      redirectPath: `/${locale}/auth?next=${nextTarget}`,
-    };
+    return { redirectPath: `/${locale}/auth?next=${nextTarget}` };
   }
 
-  // 3. Enforce Recruiter cannot edit player-owned data
-  if (isAuthenticated && meta) {
+  if (isAuthenticated && meta && isAuthRoute && !isVerifyEmailRoute) {
     const effectiveRole: AppRole =
-      activeRoleCookie === 'RECRUITER' || activeRoleCookie === 'PLAYER'
-        ? activeRoleCookie
-        : meta.activeRole;
-
-    const isPlayerEditRoute =
-      pathWithoutLocale.startsWith('/player/profiles/edit') ||
-      pathWithoutLocale.startsWith('/player/onboarding') ||
-      pathWithoutLocale.startsWith('/player/profile/edit');
-
-    if (
-      isPlayerEditRoute &&
-      effectiveRole === 'RECRUITER' &&
-      meta.role === 'RECRUITER' &&
-      !meta.hasPlayerProfile
-    ) {
-      return {
-        redirectPath: `/${locale}/recruiter`,
-      };
+      activeRoleCookie === 'RECRUITER' || activeRoleCookie === 'PLAYER' ? activeRoleCookie : meta.activeRole;
+    if (effectiveRole === 'RECRUITER' && meta.hasRecruiterProfile === false) {
+      return { redirectPath: `/${locale}/setup/recruiter` };
     }
-
-    // 4. Redirect already-signed-in users away from `/auth` (except `/auth/verify-email`)
-    if (isAuthRoute && !isVerifyEmailRoute) {
-      if (effectiveRole === 'RECRUITER') {
-        const dest =
-          meta.hasRecruiterProfile === false
-            ? `/${locale}/recruiter/onboarding`
-            : `/${locale}/recruiter`;
-        return { redirectPath: dest };
-      }
-      const dest =
-        meta.hasPlayerProfile === false
-          ? `/${locale}/player/onboarding`
-          : `/${locale}/player`;
-      return { redirectPath: dest };
+    if (effectiveRole === 'PLAYER' && meta.hasPlayerProfile === false) {
+      return { redirectPath: `/${locale}/setup` };
     }
+    return { redirectPath: `/${locale}/home` };
   }
 
   return {};
 }
-

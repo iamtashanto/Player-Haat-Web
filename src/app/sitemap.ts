@@ -1,50 +1,29 @@
 import type { MetadataRoute } from 'next';
-import { FEATURED_SEO_LOCATIONS, getSiteBaseUrl } from '@/lib/public-data';
+import { areaPath, fetchOpenRequests, fetchPublicSports, fetchTopPlayers, getSiteBaseUrl, listActiveAreas } from '@/lib/public-data';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+// Built on request from live data, so it never lists a page that doesn't exist.
+export const dynamic = 'force-dynamic';
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = getSiteBaseUrl();
   const now = new Date();
+  const sports = await fetchPublicSports();
+  const [players, requests, areas] = await Promise.all([fetchTopPlayers(50), fetchOpenRequests(50), listActiveAreas(sports)]);
 
-  const staticPaths = [
-    '',
-    '/about',
-    '/contact',
-    '/privacy',
-    '/terms',
-    '/account-deletion',
-    '/p/sohel-rana-football',
-    '/p/sohel-rana-cricket',
-    '/r/req-kalapara-gold-cup',
-    '/r/req-mirpur-t20-friday',
+  const paths = [
+    ...['', '/about', '/contact', '/privacy', '/terms', '/account-deletion'],
+    ...players.map((p) => `/p/${p.id}`),
+    ...requests.map((r) => `/r/${r.id}`),
+    ...areas.map(areaPath),
   ];
 
-  const locationPaths = FEATURED_SEO_LOCATIONS.map(
-    (loc) => `/${loc.sportCode}/${loc.districtSlug}/${loc.upazilaSlug}`,
+  return paths.flatMap((path) =>
+    (['bn', 'en'] as const).map((locale) => ({
+      url: `${siteUrl}/${locale}${path}`,
+      lastModified: now,
+      changeFrequency: path === '' ? ('daily' as const) : ('weekly' as const),
+      priority: path === '' ? 1 : path.startsWith('/p/') || path.startsWith('/r/') ? 0.8 : 0.7,
+      alternates: { languages: { bn: `${siteUrl}/bn${path}`, en: `${siteUrl}/en${path}` } },
+    })),
   );
-
-  const allPaths = [...staticPaths, ...locationPaths];
-  const entries: MetadataRoute.Sitemap = [];
-
-  for (const path of allPaths) {
-    const enUrl = `${siteUrl}/en${path}`;
-    const bnUrl = `${siteUrl}/bn${path}`;
-
-    for (const locale of ['bn', 'en'] as const) {
-      entries.push({
-        url: `${siteUrl}/${locale}${path}`,
-        lastModified: now,
-        changeFrequency: path === '' ? 'daily' : 'weekly',
-        priority: path === '' ? 1.0 : path.startsWith('/p/') || path.startsWith('/r/') ? 0.8 : 0.7,
-        alternates: {
-          languages: {
-            bn: bnUrl,
-            en: enUrl,
-          },
-        },
-      });
-    }
-  }
-
-  return entries;
 }
-

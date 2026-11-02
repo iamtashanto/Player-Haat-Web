@@ -39,6 +39,7 @@ import {
   useUnlinkMethod,
 } from '@/lib/settings-api';
 import { cn } from '@/lib/utils';
+import { getErrorText } from '@/lib/errors';
 
 export function SettingsView() {
   const t = useTranslations();
@@ -66,17 +67,14 @@ export function SettingsView() {
   const handleUnlink = async (provider: 'phone' | 'google' | 'apple') => {
     try {
       await unlinkMutation.mutateAsync(provider);
-      showPhToast('Method unlinked');
-    } catch {
-      showPhToast('Could not unlink login method');
+      showPhToast(t('unlinkedToast'), 'success');
+    } catch (e) {
+      showPhToast(getErrorText((k) => t(k), e), 'error');
     }
   };
 
   const handleDeleteAccount = async () => {
-    if (deleteConfirmText !== 'DELETE') {
-      showPhToast('Please type DELETE to confirm');
-      return;
-    }
+    if (deleteConfirmText !== 'DELETE') return;
 
     try {
       await deleteAccountMutation.mutateAsync({
@@ -84,16 +82,14 @@ export function SettingsView() {
         password: deletePassword ? deletePassword : undefined,
       });
       await logout();
-      showPhToast('Your account has been deleted');
       router.push('/');
-    } catch {
-      showPhToast('Could not delete account. Check password.');
+    } catch (e) {
+      showPhToast(getErrorText((k) => t(k), e), 'error');
     }
   };
 
   const handleLogout = async () => {
     await logout();
-    showPhToast('Signed out');
     router.push('/auth');
   };
 
@@ -216,7 +212,7 @@ export function SettingsView() {
                 onPressed={async () => {
                   const next = activeRole === 'PLAYER' ? 'RECRUITER' : 'PLAYER';
                   await switchActiveRole(next);
-                  router.push(next === 'RECRUITER' ? '/recruiter' : '/player');
+                  router.push('/home');
                 }}
               />
             ) : (
@@ -227,7 +223,7 @@ export function SettingsView() {
                 onPressed={async () => {
                   const other = activeRole === 'PLAYER' ? 'RECRUITER' : 'PLAYER';
                   await enableOtherRole(other);
-                  router.push(other === 'RECRUITER' ? '/recruiter' : '/player');
+                  router.push('/home');
                 }}
               />
             )}
@@ -267,7 +263,7 @@ export function SettingsView() {
               <div>
                 <div className="tx-subhead-strong text-[var(--ph-text)]">Email & Password</div>
                 <div className="tx-caption text-[var(--ph-text-secondary)]">
-                  {methods?.email || me?.email || 'Registered account'}
+                  {methods?.email || me?.email || ''}
                 </div>
               </div>
             </div>

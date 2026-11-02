@@ -610,15 +610,11 @@ export function AuthProvider({
       ) {
         return nextParam;
       }
-      if (!target) {
-        return activeRole === 'RECRUITER' ? '/recruiter' : '/player';
-      }
-      if (target.role === 'RECRUITER') {
-        return target.hasRecruiterProfile
-          ? '/recruiter'
-          : '/recruiter/onboarding';
-      }
-      return target.hasPlayerProfile ? '/player' : '/player/onboarding';
+      if (!target) return '/home';
+      // Mirrors the app's router redirect: recruiters can't skip setup; players can (it's offered).
+      if (target.role === 'RECRUITER' && !target.hasRecruiterProfile) return '/setup/recruiter';
+      if (target.role !== 'RECRUITER' && !target.hasPlayerProfile) return '/setup';
+      return '/home';
     },
     [me, activeRole],
   );

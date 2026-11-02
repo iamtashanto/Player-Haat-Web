@@ -838,5 +838,8 @@
   "accountDeletionStep3": "3. Your profile, sport profiles, and uploaded photos are immediately purged and anonymized.",
   "accountDeletionWhatIsDeletedTitle": "What gets deleted",
   "accountDeletionWhatIsDeletedBody": "Your personal profile, phone number, email address, login links, avatar, uploaded match photos, video links, and sport profiles are permanently removed. Completed match ratings are anonymized so historical match integrity is preserved.",
-  "accountDeletionEmailFallback": "If you cannot access your account, email support@playerhaat.com from your registered email or phone number with the subject 'DELETE ACCOUNT'."
+  "accountDeletionEmailFallback": "If you cannot access your account, email support@playerhaat.com from your registered email or phone number with the subject 'DELETE ACCOUNT'.",
+  "navPrimary": "Main navigation",
+  "navAbout": "About",
+  "navContact": "Contact"
 }
